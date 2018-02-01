@@ -24,7 +24,7 @@ void PhysicsEngine::initializeWorld_Random(void)
 		newW_Bottom->d3_Position = glm::dvec3(0.5*d3_Size_World.x, 0.0, 0.5*d3_Size_World.z);
 		newW_Bottom->d3_Velocity = glm::dvec3(0.0, 0.0, 0.0);
 
-		allWall.push_back(newW_Bottom);
+		v_Wall.push_back(newW_Bottom);
 
 		// top wall
 		Wall_CC *newW_Top = new Wall_CC();
@@ -39,7 +39,7 @@ void PhysicsEngine::initializeWorld_Random(void)
 		newW_Top->d3_Position = glm::dvec3(0.5*d3_Size_World.x, d3_Size_World.y, 0.5*d3_Size_World.z);
 		newW_Top->d3_Velocity = glm::dvec3(0.0, 0.0, 0.0);
 
-		allWall.push_back(newW_Top);
+		v_Wall.push_back(newW_Top);
 
 		// side walls
 		for(double dAngle = 0.0; dAngle < 2.0*_PI; dAngle += 0.5*_PI)
@@ -56,14 +56,14 @@ void PhysicsEngine::initializeWorld_Random(void)
 			newW->d3_Position = 0.5*d3_Size_World + 0.5*d3_Size_World * glm::dvec3(glm::cos(dAngle), 0.0, glm::sin(dAngle));
 			newW->d3_Velocity = glm::dvec3(0.0, 0.0, 0.0);
 
-			allWall.push_back(newW);
+			v_Wall.push_back(newW);
 		}
 	}
 
 	if(true)
 	{// particles -------------------------------------------------------------
 		std::vector<Particle_CC *> thisParticleDomain;
-		for(unsigned int index_P = 0; index_P < 10000; index_P++)
+		for(unsigned int index_P = 0; index_P < 200; index_P++)
 		{// assign material point initial values
 			// trial, create a random particle
 			double dR = 0.005;
@@ -98,20 +98,20 @@ void PhysicsEngine::initializeWorld_Random(void)
 			newP->d_ElasticModulus = 70.0e9;
 			newP->d_PoissonRatio = 0.25;
 
-			newP->d_DampingCoefficient = 1.0e9;
+			newP->d_DampingCoefficient = 1.0e9 * newP->d_Volume;
 
 			newP->d3_Position = glm::dvec3(dx, dy, dz);
 			newP->d3_Velocity = glm::dvec3(0.0, 0.0, 0.0);
 			newP->d3_Force_External = newP->d_Mass * glm::dvec3(0.0,-10.0,0.0);
 
-			allParticle.push_back(newP);
+			v_Particle.push_back(newP);
 		}
 	}
 
 	double dMass_Domain = 0.0;
-	for(unsigned int index_P = 0; index_P < allParticle.size(); index_P++)
+	for(unsigned int index_P = 0; index_P < v_Particle.size(); index_P++)
 	{// calculate debug values
-		dMass_Domain += allParticle[index_P]->d_Mass;
+		dMass_Domain += v_Particle[index_P]->d_Mass;
 	}
 
 	a_Runtime.fill(0.0);
@@ -139,7 +139,7 @@ void PhysicsEngine::initializeWorld_Random(void)
 		sDescription += "-------------------------------------------------------------\n";
 		sDescription += "Number of threads: " + Script(_MAX_N_THREADS) + "\n";
 		sDescription += "Time increment: " + Script(d_TimeIncrement_Maximum, 6) + "\n";
-		sDescription += "Particle count: " + Script(allParticle.size()) + "\n";
+		sDescription += "Particle count: " + Script(v_Particle.size()) + "\n";
 		sDescription += "Mass: " + Script(dMass_Domain,6) + "\n";
 		sDescription += "-------------------------------------------------------------\n";
 

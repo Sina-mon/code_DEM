@@ -18,6 +18,8 @@ class Wall_CC
 		glm::dvec3	d3_UnitNormal; // outward normal, pointing toward air
 		glm::dvec3	d3_Position;
 		glm::dvec3	d3_Velocity;
+
+		glm::dvec3	d3_Force = glm::dvec3(0.0,0.0,0.0);
 	protected:
 	private:
 };

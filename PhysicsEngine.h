@@ -12,13 +12,21 @@
 ////#include ".\include\glm\glm.hpp" // windows
 //#include "./include/glm/glm.hpp"//sina, glm is a column major implementation
 
+#define _MAX_N_THREADS 1
+
+#define _MAX_PARTICLE 1000
+#define _MAX_PPC_PER_PARTICLE 6
+#define _MAX_PWC_PER_PARTICLE 3
+
 #include "Particle_CC.h"
 #include "Wall_CC.h"
+
+#include "Link_PPC_CC.h"
+#include "Link_PWC_CC.h"
 
 #include "ConstitutiveRelation.h"
 #include "TimeLine.h"
 
-#define _MAX_N_THREADS 1
 
 class PhysicsEngine
 {
@@ -41,16 +49,26 @@ class PhysicsEngine
 		double getTime_ConsoleInterval(void) {return(d_TimeConsole_Interval);}
 
 		// graphics interface -------------------------------------------------
-		unsigned int	getCount_Particles(void) {return(allParticle.size());}
-		unsigned int	getCount_Walls(void) {return(allWall.size());}
+		unsigned int	getCount_Particles(void) {return(v_Particle.size());}
+		unsigned int	getCount_Walls(void) {return(v_Wall.size());}
 
-		std::vector<Particle_CC *>	getParticles(void) {return(allParticle);}
-		std::vector<Wall_CC *>		getWalls(void) {return(allWall);}
+		std::vector<Particle_CC *>	getParticles(void) {return(v_Particle);}
+		std::vector<Wall_CC *>		getWalls(void) {return(v_Wall);}
 	protected:
 		double d_DampingCoefficient = 0.0;
 
-		std::vector<Particle_CC *> allParticle;
-		std::vector<Wall_CC *> allWall;
+		// counters
+		unsigned long int i_Particle_Count = 0;
+		unsigned long int i_Wall_Count = 0;
+		unsigned long int i_Link_PPC_Count = 0;
+		unsigned long int i_Link_PWC_Count = 0;
+
+		// particles and walls
+		std::vector<Particle_CC *> v_Particle;
+		std::vector<Wall_CC *> v_Wall;
+		// links
+		std::vector<Link_PPC_CC *> v_Link_PPC;
+		std::vector<Link_PWC_CC *> v_Link_PWC;
 
 		// time related variables
 		double d_Time = 0.0; // current simulation time

@@ -46,6 +46,9 @@ class Particle_CC
 		glm::dvec3	d3_Force = glm::dvec3(0.0,0.0,0.0);
 		glm::dvec3	d3_Force_External = glm::dvec3(0.0,0.0,0.0);
 
+		glm::dvec3	d3_Moment = glm::dvec3(0.0,0.0,0.0);
+		glm::dvec3	d3_Moment_External = glm::dvec3(0.0,0.0,0.0);
+
 		std::string		Script			(int) const;
 	protected:
 	private:
