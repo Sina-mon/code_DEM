@@ -31,7 +31,7 @@ int PhysicsEngine::runSimulation(double dTimeIncrement_Total)
 
 			#pragma omp barrier
 			dRuntime_Block = omp_get_wtime();
-			// reset particle variables: force
+			// reset particle variables: force, moment, dynamic marker
 			#pragma omp for
 			for(unsigned int index_P = 0; index_P < v_Particle.size(); index_P++)
 			{
@@ -40,6 +40,7 @@ int PhysicsEngine::runSimulation(double dTimeIncrement_Total)
 				thisP->b_Marked = false;
 
 				thisP->d3_Force = thisP->d3_Force_External;
+				thisP->d3_Moment = glm::dvec3(0.0,0.0,0.0);
 			}
 
 			// reset PPC counter
@@ -81,6 +82,11 @@ int PhysicsEngine::runSimulation(double dTimeIncrement_Total)
 						v_Link_PPC[i_Link_PPC_Count]->index_P2 = index_P2;
 
 						i_Link_PPC_Count++;
+
+						if(i_Link_PPC_Count > v_Link_PPC.size())
+						{
+							std::cout << "PhysicsEngine::runSimulation, exceeding allowable PP contact count." << std::endl;
+						}
 					}
 				}
 			}
@@ -197,8 +203,14 @@ int PhysicsEngine::runSimulation(double dTimeIncrement_Total)
 
 						v_Link_PWC[i_Link_PWC_Count]->index_P = index_P;
 						v_Link_PWC[i_Link_PWC_Count]->index_W = index_W;
+						v_Link_PWC[i_Link_PWC_Count]->d3_UnitNormal = thisW->d3_UnitNormal;
 
 						i_Link_PWC_Count++;
+
+						if(i_Link_PWC_Count > v_Link_PWC.size())
+						{
+							std::cout << "PhysicsEngine::runSimulation, exceeding allowable PW contact count." << std::endl;
+						}
 					}
 				}
 			}
@@ -216,6 +228,8 @@ int PhysicsEngine::runSimulation(double dTimeIncrement_Total)
 				Particle_CC *thisP = v_Particle[index_P];
 				Wall_CC		*thisW = v_Wall[index_W];
 
+				double dRadius = thisP->d_Radius;
+
 				glm::dvec3 d3Position_P = thisP->d3_Position;
 				glm::dvec3 d3Position_W = thisW->d3_Position;
 
@@ -226,6 +240,41 @@ int PhysicsEngine::runSimulation(double dTimeIncrement_Total)
 				glm::dvec3 d3Relative_Velocity = d3Velocity_P - d3Velocity_W;
 
 				glm::dvec3 d3UnitNormal = thisW->d3_UnitNormal;
+
+				glm::dvec3 d3Relative_ContactVelocity;
+				{
+					glm::dvec3 d3ContactVelocity_P = glm::dvec3(0.0,0.0,0.0);
+					d3ContactVelocity_P = glm::cross(thisP->d3_AngularVelocity, -d3UnitNormal);
+					d3ContactVelocity_P *= dRadius;
+					d3ContactVelocity_P += d3Velocity_P;
+
+					glm::dvec3 d3ContactVelocity_W = d3Velocity_W;
+
+					d3Relative_ContactVelocity = d3ContactVelocity_W - d3ContactVelocity_P;
+
+//					d3ContactVelocity_W = d3ContactVelocity_W - d3ContactVelocity_P;
+//
+//					double3 d3ContactVelocityP = pParticle[iP].AngularVelocity;
+//					d3ContactVelocityP = cross(d3ContactVelocityP, d3UnitNormal);
+//					d3ContactVelocityP *= dRadius;
+//					d3ContactVelocityP += d3VelocityP;
+//
+//					double3 d3ContactVelocityW = d3VelocityW;
+//
+//					d3ContactVelocityRelative = d3ContactVelocityW - d3ContactVelocityP;
+				}
+
+				glm::dvec3 d3UnitTangent;
+				{// unit tangent
+					double dTemp = glm::dot(d3Relative_ContactVelocity, -d3UnitNormal);
+					d3UnitTangent = -d3UnitNormal;
+					d3UnitTangent *= -dTemp;
+					d3UnitTangent += d3Relative_ContactVelocity;
+					if(length(d3UnitTangent) > 1.0e-12)
+						d3UnitTangent = glm::normalize(d3UnitTangent);
+					else
+						d3UnitTangent *= 0.0;
+				}
 
 				double dNormalDistance = glm::length(glm::dot(d3Relative_Position, d3UnitNormal));
 
@@ -267,6 +316,23 @@ int PhysicsEngine::runSimulation(double dTimeIncrement_Total)
 				d3Force_Damping_Normal *= dC;
 
 				thisP->d3_Force += d3Force_Damping_Normal;
+
+				// tangent contact force (kinematic friction)
+				double dCOF = 0.5;//coefficient of friction
+				glm::dvec3 d3Force_Contact_Tangent = glm::dvec3(0.0,0.0,0.0);
+				d3Force_Contact_Tangent = d3UnitTangent;
+				d3Force_Contact_Tangent *= glm::length(d3Force_Contact_Normal);
+				d3Force_Contact_Tangent *= dCOF;
+
+				thisP->d3_Force += d3Force_Contact_Tangent;
+				thisW->d3_Force -= d3Force_Contact_Tangent;
+
+				// contact moment (caused by tangential contact force)
+				glm::dvec3 d3Moment = glm::dvec3(0.0,0.0,0.0);
+				d3Moment = glm::cross(-d3UnitNormal, d3Force_Contact_Tangent);
+				d3Moment *= dRadius;
+
+				thisP->d3_Moment += d3Moment;
 			}
 /*
 			#pragma omp barrier
@@ -437,11 +503,15 @@ int PhysicsEngine::runSimulation(double dTimeIncrement_Total)
 			{
 				Particle_CC *thisP = v_Particle[index_P];
 
+				// translations
 				thisP->d3_Acceleration = thisP->d3_Force * (1.0/thisP->d_Mass);
-
-				// update velocity and position
 				thisP->d3_Velocity += thisP->d3_Acceleration * dTimeIncrement;
 				thisP->d3_Position += thisP->d3_Velocity * dTimeIncrement;
+
+				// rotations
+				thisP->d3_AngularAcceleration = thisP->d3_Moment * (1.0/thisP->d_MomentInertia);
+				thisP->d3_AngularVelocity += thisP->d3_AngularAcceleration * dTimeIncrement;
+				thisP->d3_AngularPosition += thisP->d3_AngularVelocity * dTimeIncrement;
 			}
 		}
 

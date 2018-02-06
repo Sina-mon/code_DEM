@@ -68,7 +68,7 @@ void GraphicsEngine::initializeSystems(void)
 	gl_Light->f4_Color = glm::vec4(1.0, 1.0, 1.0, 1.0);
 
 //	gl_Texture_01 = new Texture("./res/bricks.jpg");
-	gl_Diffuse_Texture = new Texture("./res/Sand_01.jpg");
+	gl_Diffuse_Texture = new Texture("./res/Colored.jpg");
 	gl_Particle_Mesh = new Mesh("./res/sphere.obj");
 }
 // ----------------------------------------------------------------------------

@@ -24,8 +24,8 @@ class Link_PWC_CC
 		glm::dvec3 d3_Relative_Position = glm::dvec3(0.0,0.0,0.0);
 		glm::dvec3 d3_Relative_Velocity = glm::dvec3(0.0,0.0,0.0);
 
-		glm::dvec3 d3_UnitNormal = glm::dvec3(0.0,0.0,0.0);
-		glm::dvec3 d3_UnitTangent = glm::dvec3(0.0,0.0,0.0);
+		glm::dvec3 d3_UnitNormal = glm::dvec3(0.0,0.0,0.0);// will be equal to the unit normal of the wall
+		glm::dvec3 d3_UnitTangent = glm::dvec3(0.0,0.0,0.0);// will be in the direction of the tangent of the velocity of the particle
 
 		glm::dvec3 d3_Force_Normal_P = glm::dvec3(0.0,0.0,0.0);
 		glm::dvec3 d3_Force_Normal_W = glm::dvec3(0.0,0.0,0.0);

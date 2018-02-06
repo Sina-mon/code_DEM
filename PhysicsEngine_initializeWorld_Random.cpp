@@ -63,7 +63,7 @@ void PhysicsEngine::initializeWorld_Random(void)
 	if(true)
 	{// particles -------------------------------------------------------------
 		std::vector<Particle_CC *> thisParticleDomain;
-		for(unsigned int index_P = 0; index_P < 200; index_P++)
+		for(unsigned int index_P = 0; index_P < 100; index_P++)
 		{// assign material point initial values
 			// trial, create a random particle
 			double dR = 0.005;
@@ -94,6 +94,7 @@ void PhysicsEngine::initializeWorld_Random(void)
 			newP->d_Volume = 4.0/3.0 * _PI * glm::pow(newP->d_Radius, 3.0);
 
 			newP->d_Mass  = 2700.0 * newP->d_Volume;
+			newP->d_MomentInertia = 0.4*(newP->d_Mass)*glm::pow(dR,2.0);
 
 			newP->d_ElasticModulus = 70.0e9;
 			newP->d_PoissonRatio = 0.25;
@@ -101,10 +102,14 @@ void PhysicsEngine::initializeWorld_Random(void)
 			newP->d_DampingCoefficient = 1.0e9 * newP->d_Volume;
 
 			newP->d3_Position = glm::dvec3(dx, dy, dz);
-			newP->d3_Velocity = glm::dvec3(0.0, 0.0, 0.0);
+			newP->d3_Velocity = glm::dvec3(0.2, 0.0, 0.0);
 			newP->d3_Force_External = newP->d_Mass * glm::dvec3(0.0,-10.0,0.0);
 
 			v_Particle.push_back(newP);
+		}
+		if(v_Particle.size() > _MAX_PARTICLE)
+		{
+			std::cout << "PhysicsEngine::initializeWorld, exceeding allowable particle count." << std::endl;
 		}
 	}
 
@@ -118,7 +123,7 @@ void PhysicsEngine::initializeWorld_Random(void)
 	d_DampingCoefficient = 0.00;
 
 	d_TimeIncrement_Maximum = 1.0e-6;
-	d_TimeEnd = 0.2;
+	d_TimeEnd = 1.0;
 	d_TimeConsole_Interval = 1.0e-2;
 
 	std::string sDescription = "";
