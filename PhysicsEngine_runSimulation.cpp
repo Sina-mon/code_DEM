@@ -128,6 +128,30 @@ int PhysicsEngine::runSimulation(double dTimeIncrement_Total)
 
 				glm::dvec3 d3UnitNormal = glm::normalize(d3Relative_Position);
 
+				glm::dvec3 d3Relative_ContactVelocity;
+				{// relative velocity at point of contact
+					glm::dvec3 d3ContactVelocity_P1 = glm::dvec3(0.0,0.0,0.0);
+					d3ContactVelocity_P1 = glm::cross(-d3UnitNormal, thisP1->d3_AngularVelocity);
+					d3ContactVelocity_P1 *= dRadius_P1;
+					d3ContactVelocity_P1 += d3Velocity_P1;
+
+					glm::dvec3 d3ContactVelocity_P2 = glm::dvec3(0.0,0.0,0.0);
+					d3ContactVelocity_P2 = glm::cross(+d3UnitNormal, thisP2->d3_AngularVelocity);
+					d3ContactVelocity_P2 *= dRadius_P2;
+					d3ContactVelocity_P2 += d3Velocity_P2;
+
+					d3Relative_ContactVelocity = d3ContactVelocity_P2 - d3ContactVelocity_P1;
+				}
+
+				glm::dvec3 d3UnitTangent;
+				{// unit tangent
+					d3UnitTangent = d3Relative_ContactVelocity - d3UnitNormal * glm::dot(d3Relative_ContactVelocity, d3UnitNormal);
+					if(length(d3UnitTangent) > 1.0e-12)
+						d3UnitTangent = glm::normalize(d3UnitTangent);
+					else
+						d3UnitTangent *= 0.0;
+				}
+
 				double dDeformation_Normal = (dRadius_P1 + dRadius_P2) - dDistance;
 
 				// normal contact force
@@ -164,6 +188,20 @@ int PhysicsEngine::runSimulation(double dTimeIncrement_Total)
 
 				thisP1->d3_Force += d3Force_Damping_Normal;
 				thisP2->d3_Force -= d3Force_Damping_Normal;
+
+				// tangent contact force (kinematic friction)
+				double dCOF = 0.5;//coefficient of friction
+				glm::dvec3 d3Force_Contact_Tangent = glm::dvec3(0.0,0.0,0.0);
+				d3Force_Contact_Tangent = d3UnitTangent;
+				d3Force_Contact_Tangent *= glm::length(d3Force_Contact_Normal);
+				d3Force_Contact_Tangent *= dCOF;
+
+				thisP1->d3_Force += d3Force_Contact_Tangent;
+				thisP2->d3_Force -= d3Force_Contact_Tangent;
+
+				// contact moment (caused by tangential contact force)
+				thisP1->d3_Moment += glm::cross(+dRadius_P1*d3UnitNormal, +d3Force_Contact_Tangent);
+				thisP2->d3_Moment += glm::cross(-dRadius_P2*d3UnitNormal, -d3Force_Contact_Tangent);
 			}
 
 			// reset PWC counter
@@ -242,7 +280,7 @@ int PhysicsEngine::runSimulation(double dTimeIncrement_Total)
 				glm::dvec3 d3UnitNormal = thisW->d3_UnitNormal;
 
 				glm::dvec3 d3Relative_ContactVelocity;
-				{
+				{// relative velocity at point of contact
 					glm::dvec3 d3ContactVelocity_P = glm::dvec3(0.0,0.0,0.0);
 					d3ContactVelocity_P = glm::cross(thisP->d3_AngularVelocity, -d3UnitNormal);
 					d3ContactVelocity_P *= dRadius;

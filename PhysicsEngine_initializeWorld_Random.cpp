@@ -63,13 +63,13 @@ void PhysicsEngine::initializeWorld_Random(void)
 	if(true)
 	{// particles -------------------------------------------------------------
 		std::vector<Particle_CC *> thisParticleDomain;
-		for(unsigned int index_P = 0; index_P < 100; index_P++)
+		for(unsigned int index_P = 0; index_P < 2; index_P++)
 		{// assign material point initial values
 			// trial, create a random particle
 			double dR = 0.005;
-			double dx = _RANDOM(1.0*dR,d3_Size_World.x-1.0*dR,100);
-			double dy = _RANDOM(1.0*dR,d3_Size_World.y-1.0*dR,100);
-			double dz = _RANDOM(1.0*dR,d3_Size_World.z-1.0*dR,100);
+			double dx = 0.5*d3_Size_World.x + index_P*0.2*dR;//_RANDOM(1.0*dR,d3_Size_World.x-1.0*dR,100);
+			double dy = 1.0*dR + index_P*2.1*dR;//_RANDOM(1.0*dR,d3_Size_World.y-1.0*dR,100);
+			double dz = 0.5*d3_Size_World.z;//_RANDOM(1.0*dR,d3_Size_World.z-1.0*dR,100);
 
 			bool bContact = false;
 			for(int index_P_Other = 0; index_P_Other < thisParticleDomain.size(); index_P_Other++)
@@ -102,7 +102,7 @@ void PhysicsEngine::initializeWorld_Random(void)
 			newP->d_DampingCoefficient = 1.0e9 * newP->d_Volume;
 
 			newP->d3_Position = glm::dvec3(dx, dy, dz);
-			newP->d3_Velocity = glm::dvec3(0.2, 0.0, 0.0);
+			newP->d3_Velocity = glm::dvec3(0., 0.0, 0.0);
 			newP->d3_Force_External = newP->d_Mass * glm::dvec3(0.0,-10.0,0.0);
 
 			v_Particle.push_back(newP);
