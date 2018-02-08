@@ -39,7 +39,13 @@ class PhysicsEngine
 		glm::dvec3 d3_Size_World = glm::dvec3(0.0, 0.0, 0.0);
 
 		// MPM ----------------------------------------------------------------
-		int		runSimulation(double dTimeIncrement_Total);
+		int	runSimulation(double dTimeIncrement_Total);
+		int	runSimulation_Reset(void);
+		int	runSimulation_findLinks_PPC(void);
+		int	runSimulation_findLinks_PWC(void);
+		int	runSimulation_processLinks_PPC(void);
+		int	runSimulation_processLinks_PWC(void);
+		int	runSimulation_processKinematics(double dTimeIncrement);
 
 		// methods to communicate with outside -------------------------------
 		double getTime_Runtime(void) {return(d_Runtime_Total);}
